@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>開始運動！</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header><h1>跟著節奏開始運動！</h1></header>
+  <div class="container" style="text-align:center;">
+    <video id="workoutVideo" width="640" controls>
+      <source src="/static/videos/workout.mp4" type="video/mp4">
+    </video>
+    <div>
+      <button onclick="document.getElementById('workoutVideo').play()">播放</button>
+      <button onclick="document.getElementById('workoutVideo').pause()">暫停</button>
+      <label>音量
+        <input type="range" min="0" max="1" step="0.1" onchange="document.getElementById('workoutVideo').volume = this.value">
+      </label>
+    </div>
+  </div>
+</body>
+</html>

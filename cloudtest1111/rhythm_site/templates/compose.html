@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>合成影片</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header><h1>合成影片中</h1></header>
+<div class="container">
+    <p id="status">正在產生影片：0%</p>
+</div>
+
+<script>
+async function startCompose() {
+    const result = JSON.parse(localStorage.getItem("analyze_result") || "{}");
+    if (!result || !result.actions || !result.music_list) {
+        document.getElementById("status").textContent = "無法取得資料！";
+        return;
+    }
+
+    const res = await fetch("/compose", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(result)
+    });
+    const data = await res.json();
+    const session_id = data.session_id;
+    const statusEl = document.getElementById("status");
+
+    const interval = setInterval(async () => {
+        const res = await fetch(`/compose/progress/${session_id}`);
+        const data = await res.json();
+        statusEl.textContent = `正在產生影片：${data.progress}%`;
+        if (data.progress >= 100) {
+            clearInterval(interval);
+            statusEl.textContent = "影片產生完成！";
+            setTimeout(() => { window.location.href = "/workout"; }, 1000);
+        }
+    }, 500);
+}
+
+startCompose();
+</script>
+</body>
+</html>

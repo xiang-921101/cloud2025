@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>韻律運動網站</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header><h1>韻律運動產生器</h1></header>
+  <div class="container">
+
+    <h2>選擇難度</h2>
+    <select id="difficulty" onchange="loadActions(this.value)">
+      <option value="low">初級</option>
+      <option value="medium">中級</option>
+      <option value="high">高級</option>
+    </select>
+
+    <h2>設定目標時長 (分鐘)</h2>
+    <input type="number" id="targetDuration" min="5" placeholder="輸入目標時長">
+
+    <h2>上傳音樂</h2>
+    <input type="file" id="musicFiles" multiple accept=".mp3" onchange="uploadMusic()">
+    <ul id="uploadedList"></ul>
+
+    <h2>可選動作</h2>
+    <div id="actionList"></div>
+
+    <form id="actionForm" action="/analyze" method="POST" onsubmit="return validateForm()">
+      <button type="submit">開始分析</button>
+    </form>
+
+  </div>
+
+<script src="/static/js/main.js"></script>
+<script>
+loadActions("low"); // 初始載入初級動作
+
+function validateForm() {
+  const duration = document.getElementById("targetDuration").value;
+  if (!duration || duration < 5) {
+    alert("請輸入至少 5 分鐘的目標時長！");
+    return false;
+  }
+
+  const sections = ["warmup","core","cooldown"];
+  for (let sec of sections) {
+    const checked = document.querySelectorAll(`input[name="actions"][value^="${sec}"]:checked`);
+    if (checked.length === 0) {
+      alert(`請至少選擇一個 ${sec} 動作！`);
+      return false;
+    }
+  }
+
+  const uploaded = document.getElementById("uploadedList").querySelectorAll("li");
+  if (uploaded.length === 0) {
+    alert("請至少上傳一首音樂！");
+    return false;
+  }
+
+  const form = document.getElementById("actionForm");
+
+  // ===== 音樂清單 =====
+  let musicListInput = document.getElementById("musicListInput");
+  if (!musicListInput) {
+    musicListInput = document.createElement("input");
+    musicListInput.type = "hidden";
+    musicListInput.name = "musicList";
+    musicListInput.id = "musicListInput";
+    form.appendChild(musicListInput);
+  }
+  musicListInput.value = Array.from(uploaded).map(li => li.textContent.replace("刪除","")).join(",");
+
+  // ===== 難度 =====
+  let difficultyInput = document.getElementById("difficultyInput");
+  if (!difficultyInput) {
+    difficultyInput = document.createElement("input");
+    difficultyInput.type = "hidden";
+    difficultyInput.name = "difficulty";
+    difficultyInput.id = "difficultyInput";
+    form.appendChild(difficultyInput);
+  }
+  difficultyInput.value = document.getElementById("difficulty").value;
+
+  // ===== 目標時長 =====
+  let durationInput = document.getElementById("durationInput");
+  if (!durationInput) {
+    durationInput = document.createElement("input");
+    durationInput.type = "hidden";
+    durationInput.name = "duration";
+    durationInput.id = "durationInput";
+    form.appendChild(durationInput);
+  }
+  durationInput.value = duration;
+
+  // ===== 勾選動作，每個勾選都生成 hidden input =====
+  document.querySelectorAll('input[name="actions"][type="hidden"]').forEach(inp => inp.remove());
+  const checkedActions = document.querySelectorAll('input[name="actions"]:checked');
+  checkedActions.forEach(cb => {
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'actions';
+    hidden.value = cb.value;
+    form.appendChild(hidden);
+  });
+
+  return true;
+}
+</script>
+</body>
+</html>
